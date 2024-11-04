@@ -1,5 +1,5 @@
 # sentiment-analysis
-## Instructions to Run the Project
+## Installation
 1. Clone the repository
 <br/>`git clone https://github.com/Ruin9999/sentiment-analysis.git`
 <br/>`cd sentiment-analysis`
@@ -11,3 +11,16 @@
 <br/>`py -m venv venv`
 <br/>`.\venv\Scripts\activate`
 4. Execute `pip install -r requirements.txt` to install all required packages.
+
+
+## Running
+Using RNN as an example:
+* Run training - default config
+<br/>`python sentiment-analysis/main.py`
+
+* Run training - default config
+<br/>`python sentiment-analysis/tuning.py`
+
+* Best Model are saved in /checkpoints/final_model
+
+* Best Config are stored in /configs/hyperparam_tuning

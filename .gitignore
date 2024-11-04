@@ -1,5 +1,14 @@
 /results/
 /bert_sentiment_model/
+/checkpoints/hyperparam_tuning
+/logs/
+/nltk/
+/__pycache__/
+/checkpoints/hyperparam_tuning
+
+# Folder name start with "trial"
+/configs/hyperparam_tuning/trial_*/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
