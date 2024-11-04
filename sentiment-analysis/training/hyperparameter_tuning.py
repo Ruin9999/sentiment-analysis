@@ -12,28 +12,32 @@ import inspect
 
 def objective(trial, model_class, train_dataloader, val_dataloader, word_to_index, word2vec_model, embedding_matrix, config_dir='configs'):
    
-    learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-3)
-    dropout_rate = trial.suggest_uniform('dropout_rate', 0.1, 0.5)
+    learning_rate = trial.suggest_loguniform('learning_rate', 1e-4, 2e-3)
+    dropout_rate = trial.suggest_uniform('dropout_rate', 0.1, 0.3)
     hidden_dim = trial.suggest_int('hidden_dim', 128, 512)
-    aggregation_method = trial.suggest_categorical('aggregation_method', ['last_hidden', 'last_output', 'mean_pooling', 'max_pooling', 'attention'])
-
+       
     model_kwargs = {
-        'vocab_size': len(word_to_index),
         'embedding_dim': word2vec_model.vector_size,
         'hidden_dim': hidden_dim,
         'output_dim': 2,
         'pad_idx': word_to_index.get('<PAD>', 0),
         'embedding_matrix': embedding_matrix,
         'freeze_embeddings': False,
-        'aggregation_method': aggregation_method,
         'dropout_rate': dropout_rate
     }
 
     signature = inspect.signature(model_class.__init__)
     if 'num_layers' in signature.parameters:
-        num_layers = trial.suggest_int('num_layers', 1, 3)
+        num_layers = trial.suggest_int('num_layers', 1, 4)
         model_kwargs['num_layers'] = num_layers
-    
+
+    if 'aggregation_method' in signature.parameters:
+        aggregation_method = trial.suggest_categorical('aggregation_method', ['last_hidden', 'last_output', 'mean_pooling', 'max_pooling', 'attention'])
+        model_kwargs['aggregation_method'] = aggregation_method
+
+    if 'vocab_size' in signature.parameters:
+        model_kwargs['vocab_size'] = len(word_to_index)
+
     try:
         model = model_class(**model_kwargs)
     except TypeError as e:
@@ -44,7 +48,7 @@ def objective(trial, model_class, train_dataloader, val_dataloader, word_to_inde
     
     classifier = SentimentClassifier(model=model, learning_rate=learning_rate, config_path=None)
     
-    early_stop_callback = pl.callbacks.EarlyStopping(monitor='val_loss', patience=3, mode='min', verbose=False)
+    early_stop_callback = pl.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode='min', verbose=False)
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         monitor='val_acc',
         dirpath='checkpoints/hyperparam_tuning',
@@ -60,7 +64,7 @@ def objective(trial, model_class, train_dataloader, val_dataloader, word_to_inde
         logger=logger,
         callbacks=[early_stop_callback, checkpoint_callback],
         enable_progress_bar=False,  
-        log_every_n_steps=10,
+        log_every_n_steps=3,
         accelerator='cuda',
         devices=[0]
     )
@@ -79,11 +83,16 @@ def objective(trial, model_class, train_dataloader, val_dataloader, word_to_inde
         'learning_rate': learning_rate,
         'dropout_rate': dropout_rate,
         'hidden_dim': hidden_dim,
-        'aggregation_method': aggregation_method
     }
     
     if 'num_layers' in model_kwargs:
         config['num_layers'] = model_kwargs['num_layers']
+
+    if 'aggregation_method' in model_kwargs:
+        config['aggregation_method'] = model_kwargs['aggregation_method']
+    
+    if 'vocab_size' in model_kwargs:
+        config['vocab_size'] = model_kwargs['vocab_size']
     
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=4)
@@ -92,7 +101,13 @@ def objective(trial, model_class, train_dataloader, val_dataloader, word_to_inde
 
 def tune_hyperparameters(model_class, train_dataloader, val_dataloader, word_to_index, word2vec_model, embedding_matrix, n_trials=50, config_dir='configs'):
 
-    study = optuna.create_study(direction='maximize', sampler=optuna.samplers.TPESampler(seed=42))
+    study = optuna.create_study(direction='maximize', 
+                                study_name=f'{model_class.__name__}_tuning',  
+                                sampler=optuna.samplers.TPESampler(seed=42),
+                                )
+
+    print(f'Study name: {study.study_name}')
+
     study.optimize(
         lambda trial: objective(
             trial, 

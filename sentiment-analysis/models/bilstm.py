@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class SentimentBiLSTM(nn.Module):
     def __init__(self, embedding_dim, hidden_dim, output_dim, pad_idx, embedding_matrix, 
-                 freeze_embeddings=True, dropout_rate=0.5, num_layers=1):
+                 freeze_embeddings=False, dropout_rate=0.2, num_layers=1):
         super(SentimentBiLSTM, self).__init__()
         embedding_tensor = torch.FloatTensor(embedding_matrix)
         self.embedding = nn.Embedding.from_pretrained(embedding_tensor, padding_idx=pad_idx, freeze=freeze_embeddings)

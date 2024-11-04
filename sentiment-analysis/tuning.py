@@ -18,6 +18,10 @@ from training.trainer import SentimentClassifier
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 import inspect 
+from models.bilstm import SentimentBiLSTM
+from models.bigru import SentimentBiGRU
+from models.cnn import SentimentCNN
+from models.improved_cnn import ImprovedSentimentCNN
 
 def main():
     # Step 1: Load Datasets
@@ -68,16 +72,18 @@ def main():
     
     # Step 9: Create DataLoaders
     print("Creating DataLoaders...")
-    train_dataloader = create_dataloader(train_X, train_y, word_to_index, batch_size=512, shuffle=True)
-    val_dataloader = create_dataloader(val_X, val_y, word_to_index, batch_size=512, shuffle=False)
-    test_dataloader = create_dataloader(test_X, test_y, word_to_index, batch_size=512, shuffle=False)
+    train_dataloader = create_dataloader(train_X, train_y, word_to_index, batch_size=256, shuffle=True)
+    val_dataloader = create_dataloader(val_X, val_y, word_to_index, batch_size=256, shuffle=False)
+    test_dataloader = create_dataloader(test_X, test_y, word_to_index, batch_size=256, shuffle=False)
     
     # Step 10: Define Model Class
     print("Defining model class for hyperparameter tuning...")
-    model_class = SentimentRNN  
+    model_class = SentimentBiLSTM  
 
     # Step 11: Define Configuration Directory
     config_dir = f'configs/{model_class.__name__}_unfreeze_tuning'
+    print(f"Configuration directory: {config_dir}")
+
     os.makedirs(config_dir, exist_ok=True)
     
     # Step 12: Perform Hyperparameter Tuning
@@ -89,7 +95,7 @@ def main():
         word_to_index=word_to_index,
         word2vec_model=word2vec_model,
         embedding_matrix=embedding_matrix,
-        n_trials=20,  
+        n_trials=15,  
         config_dir=config_dir
     )
     
@@ -102,24 +108,27 @@ def main():
     learning_rate = best_params['learning_rate']
     dropout_rate = best_params['dropout_rate']
     hidden_dim = best_params['hidden_dim']
-    aggregation_method = best_params['aggregation_method']
     
     final_model_kwargs = {
-        'vocab_size': len(word_to_index),
         'embedding_dim': word2vec_model.vector_size,
         'hidden_dim': hidden_dim,
         'output_dim': 2,
         'pad_idx': word_to_index.get('<PAD>', 0),
         'embedding_matrix': embedding_matrix,
         'freeze_embeddings': False,
-        'aggregation_method': aggregation_method,
         'dropout_rate': dropout_rate
     }
     
-    # signature = inspect.signature(model_class.__init__)
-    # if 'num_layers' in signature.parameters:
+    signature = inspect.signature(model_class.__init__)
+    if 'num_layers' in signature.parameters:
         final_model_kwargs['num_layers'] = best_params.get('num_layers', 1) 
 
+    if 'aggregation_method' in signature.parameters:
+        final_model_kwargs['aggregation_method'] = best_params.get['aggregation_method']
+    
+    if 'vocab_size' in signature.parameters:
+        final_model_kwargs['vocab_size'] = best_params.get['vocab_size']
+    
 
     final_model = model_class(**final_model_kwargs)
     

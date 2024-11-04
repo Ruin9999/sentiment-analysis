@@ -6,9 +6,8 @@
 /__pycache__/
 /checkpoints/hyperparam_tuning
 
-# Folder name start with "trial"
-/configs/hyperparam_tuning/trial_*/
-
+# All sub folder name start with "trial"
+**/trial*/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

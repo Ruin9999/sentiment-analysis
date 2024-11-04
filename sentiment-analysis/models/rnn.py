@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 class SentimentRNN(nn.Module):
     def __init__(self, vocab_size, embedding_dim, hidden_dim, output_dim, pad_idx, embedding_matrix, 
-                 freeze_embeddings=True, aggregation_method='max_pooling', dropout_rate=0.2):
+                 freeze_embeddings=False, aggregation_method='max_pooling', dropout_rate=0.2):
         super(SentimentRNN, self).__init__()
        
         self.hparams = {
