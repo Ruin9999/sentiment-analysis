@@ -41,8 +41,10 @@ def create_embedding_matrix(word_to_index, word2vec_model, embedding_dim):
     for word, i in word_to_index.items():
         if word in word2vec_model.wv:
             embedding_matrix[i] = word2vec_model.wv[word]
+        elif word == PAD_TOKEN:
+            embedding_matrix[i] = np.zeros(embedding_dim)
         else:
-            embedding_matrix[i] = np.random.normal(scale=0.6, size=(embedding_dim,))
+            embedding_matrix[i] = np.mean(word2vec_model.wv.vectors, axis=0)
     return embedding_matrix
 
 def words_to_indices(sentences, word_to_index):
