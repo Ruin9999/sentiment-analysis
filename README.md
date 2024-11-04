@@ -14,7 +14,7 @@
 
 
 ## Running
-Using RNN as an example:
+Using RNN as an example (Default is UnFreeze):
 * Run training - default config
 <br/>`python sentiment-analysis/main.py`
 

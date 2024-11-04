@@ -24,7 +24,7 @@ def objective(trial, model_class, train_dataloader, val_dataloader, word_to_inde
         'output_dim': 2,
         'pad_idx': word_to_index.get('<PAD>', 0),
         'embedding_matrix': embedding_matrix,
-        'freeze_embeddings': True,
+        'freeze_embeddings': False,
         'aggregation_method': aggregation_method,
         'dropout_rate': dropout_rate
     }

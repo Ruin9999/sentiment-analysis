@@ -19,24 +19,6 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 import inspect 
 
-# /p/scratch/ccstdl/xu17/jz/code/sentiment-analysis/sentiment-analysis/main_hyperparam_tuning.py
-
-import numpy as np
-import torch
-from data.data_loader import load_rotten_tomatoes_dataset
-from data.preprocessing import apply_preprocessing, tokenize_sentences
-from embeddings.embedding_preparation import (
-    train_word2vec, 
-    build_vocab, 
-    handle_oov, 
-    create_embedding_matrix, 
-    words_to_indices, 
-    create_dataloader
-)
-from models.rnn import SentimentRNN
-from training.hyperparameter_tuning import tune_hyperparameters
-import os
-
 def main():
     # Step 1: Load Datasets
     print("Loading datasets...")
@@ -95,7 +77,7 @@ def main():
     model_class = SentimentRNN  
 
     # Step 11: Define Configuration Directory
-    config_dir = 'configs/hyperparam_tuning'
+    config_dir = f'configs/{model_class.__name__}_unfreeze_tuning'
     os.makedirs(config_dir, exist_ok=True)
     
     # Step 12: Perform Hyperparameter Tuning
@@ -129,19 +111,19 @@ def main():
         'output_dim': 2,
         'pad_idx': word_to_index.get('<PAD>', 0),
         'embedding_matrix': embedding_matrix,
-        'freeze_embeddings': True,
+        'freeze_embeddings': False,
         'aggregation_method': aggregation_method,
         'dropout_rate': dropout_rate
     }
     
-    signature = inspect.signature(model_class.__init__)
-    if 'num_layers' in signature.parameters:
+    # signature = inspect.signature(model_class.__init__)
+    # if 'num_layers' in signature.parameters:
         final_model_kwargs['num_layers'] = best_params.get('num_layers', 1) 
 
 
     final_model = model_class(**final_model_kwargs)
     
-    final_classifier = SentimentClassifier(model=final_model, learning_rate=learning_rate, config_path=os.path.join(config_dir, 'final_model_config.json'))
+    final_classifier = SentimentClassifier(model=final_model, learning_rate=learning_rate, config_path=os.path.join(config_dir, f'{model_class.__name__}_final_config.json'))
     
     early_stop_callback = pl.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode='min', verbose=True)
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
@@ -172,6 +154,7 @@ def main():
         print(f"Loading best model from {best_model_path} for inference...")
         best_classifier = SentimentClassifier.load_from_checkpoint(best_model_path)
         trainer.test(best_classifier, test_dataloader)
+
 
 if __name__ == "__main__":
     main()

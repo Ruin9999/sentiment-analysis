@@ -1,0 +1,11 @@
+{
+    "learning_rate": 0.0008737181984476959,
+    "vocab_size": 8819,
+    "embedding_dim": 100,
+    "hidden_dim": 280,
+    "output_dim": 2,
+    "pad_idx": 5924,
+    "freeze_embeddings": false,
+    "aggregation_method": "max_pooling",
+    "dropout_rate": 0.11301995226234618
+}
