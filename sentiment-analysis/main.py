@@ -21,9 +21,16 @@ from training.hyperparameter_tuning import tune_hyperparameters
 from utils.oov_handler import replace_oov_words
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
+import argparse
 import os
+from utils.get_model import get_model
 
 def main():
+
+    parser = argparse.ArgumentParser(description="Run sentiment analysis model tuning.")
+    parser.add_argument('--model', type=str, default='bilstm', help="Specify the model to tune (e.g., 'rnn', 'bilstm', 'bigru', 'cnn', 'improved_cnn')")
+    args = parser.parse_args()
+
     # Step 1: Load Datasets
     print("Loading datasets...")
     train_dataset, validation_dataset, test_dataset = load_rotten_tomatoes_dataset()
@@ -78,57 +85,57 @@ def main():
     
     # Step 10: Initialize Model
     print("Initializing model...")
-    MODEL_CLASS = SentimentRNN  
+    MODEL_CLASS = get_model(args.model)
     
-    model = MODEL_CLASS(
-        vocab_size=len(word_to_index),
-        embedding_dim=100,
-        hidden_dim=256,
-        output_dim=2,
-        pad_idx=word_to_index.get('<PAD>', 0),
-        embedding_matrix=embedding_matrix,
-        freeze_embeddings=True,
-        aggregation_method='max_pooling',
-        dropout_rate=0.2
-    )
+    # model = MODEL_CLASS(
+    #     vocab_size=len(word_to_index),
+    #     embedding_dim=100,
+    #     hidden_dim=256,
+    #     output_dim=2,
+    #     pad_idx=word_to_index.get('<PAD>', 0),
+    #     embedding_matrix=embedding_matrix,
+    #     freeze_embeddings=True,
+    #     aggregation_method='max_pooling',
+    #     dropout_rate=0.2
+    # )
     
-    # Step 11: Wrap in SentimentClassifier
-    print("Wrapping in SentimentClassifier...")
-    config_dir = 'configs'
-    os.makedirs(config_dir, exist_ok=True)
-    config_path = os.path.join(config_dir, f'{MODEL_CLASS.__name__}_config.json')
+    # # Step 11: Wrap in SentimentClassifier
+    # print("Wrapping in SentimentClassifier...")
+    # config_dir = 'configs'
+    # os.makedirs(config_dir, exist_ok=True)
+    # config_path = os.path.join(config_dir, f'{MODEL_CLASS.__name__}_config.json')
     
-    classifier = SentimentClassifier(model=model, learning_rate=1e-3, config_path=config_path)
+    # classifier = SentimentClassifier(model=model, learning_rate=1e-3, config_path=config_path)
     
-    # Step 12: Define Logger and Callbacks
-    print("Setting up logger and callbacks...")
-    logger = TensorBoardLogger("logs", name="sentiment_analysis")
+    # # Step 12: Define Logger and Callbacks
+    # print("Setting up logger and callbacks...")
+    # logger = TensorBoardLogger("logs", name="sentiment_analysis")
     
-    early_stop_callback = pl.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode='min', verbose=True)
-    checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        monitor='val_acc',
-        dirpath='checkpoints',
-        filename=f'{MODEL_CLASS.__name__}' + '-{epoch:02d}-{val_acc:.2f}',
-        save_top_k=1,
-        mode='max'
-    )
+    # early_stop_callback = pl.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode='min', verbose=True)
+    # checkpoint_callback = pl.callbacks.ModelCheckpoint(
+    #     monitor='val_acc',
+    #     dirpath='checkpoints',
+    #     filename=f'{MODEL_CLASS.__name__}' + '-{epoch:02d}-{val_acc:.2f}',
+    #     save_top_k=1,
+    #     mode='max'
+    # )
     
-    # Step 13: Define Trainer
-    print("Defining trainer...")
-    trainer = pl.Trainer(
-        max_epochs=20,
-        logger=logger,
-        callbacks=[early_stop_callback, checkpoint_callback],
-        # strategy='ddp' 
-    )
+    # # Step 13: Define Trainer
+    # print("Defining trainer...")
+    # trainer = pl.Trainer(
+    #     max_epochs=20,
+    #     logger=logger,
+    #     callbacks=[early_stop_callback, checkpoint_callback],
+    #     # strategy='ddp' 
+    # )
     
-    # Step 14: Train Model
-    print("Training model...")
-    trainer.fit(classifier, train_dataloader, val_dataloader)
+    # # Step 14: Train Model
+    # print("Training model...")
+    # trainer.fit(classifier, train_dataloader, val_dataloader)
     
-    # Step 15: Test Model
-    print("Testing model...")
-    trainer.test(classifier, test_dataloader)
+    # # Step 15: Test Model
+    # print("Testing model...")
+    # trainer.test(classifier, test_dataloader)
 
 
 if __name__ == "__main__":

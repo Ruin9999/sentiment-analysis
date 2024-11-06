@@ -5,7 +5,7 @@
 /nltk/
 /__pycache__/
 /checkpoints/hyperparam_tuning
-
+/best_models/
 # All sub folder name start with "trial"
 **/trial*/
 

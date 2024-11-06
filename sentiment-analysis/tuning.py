@@ -22,8 +22,15 @@ from models.bilstm import SentimentBiLSTM
 from models.bigru import SentimentBiGRU
 from models.cnn import SentimentCNN
 from models.improved_cnn import ImprovedSentimentCNN
+import argparse
+from utils.get_model import get_model_class
 
 def main():
+
+    parser = argparse.ArgumentParser(description="Run sentiment analysis model tuning.")
+    parser.add_argument('--model', type=str, default='bilstm', help="Specify the model to tune (e.g., 'rnn', 'bilstm', 'bigru', 'cnn', 'improved_cnn')")
+    args = parser.parse_args()
+
     # Step 1: Load Datasets
     print("Loading datasets...")
     train_dataset, validation_dataset, test_dataset = load_rotten_tomatoes_dataset()
@@ -78,7 +85,8 @@ def main():
     
     # Step 10: Define Model Class
     print("Defining model class for hyperparameter tuning...")
-    model_class = SentimentBiLSTM  
+    model_class = get_model_class(args.model)
+    print(f"Selected model class for tuning: {model_class.__name__}")
 
     # Step 11: Define Configuration Directory
     config_dir = f'configs/{model_class.__name__}_unfreeze_tuning'
@@ -107,21 +115,28 @@ def main():
 
     learning_rate = best_params['learning_rate']
     dropout_rate = best_params['dropout_rate']
-    hidden_dim = best_params['hidden_dim']
     
     final_model_kwargs = {
         'embedding_dim': word2vec_model.vector_size,
-        'hidden_dim': hidden_dim,
-        'output_dim': 2,
+        # 'hidden_dim': hidden_dim,
         'pad_idx': word_to_index.get('<PAD>', 0),
         'embedding_matrix': embedding_matrix,
         'freeze_embeddings': False,
-        'dropout_rate': dropout_rate
+        # 'dropout_rate': dropout_rate
     }
     
     signature = inspect.signature(model_class.__init__)
+    if 'dropout_rate' in signature.parameters:
+        final_model_kwargs['dropout_rate'] = best_params['dropout_rate']
+
+    if 'hidden_dim' in signature.parameters:
+        final_model_kwargs['hidden_dim'] = best_params.get('hidden_dim')
+
+    if 'output_dim' in signature.parameters:
+        final_model_kwargs['output_dim'] = best_params.get('output_dim')
+
     if 'num_layers' in signature.parameters:
-        final_model_kwargs['num_layers'] = best_params.get('num_layers', 1) 
+        final_model_kwargs['num_layers'] = best_params.get('num_layers') 
 
     if 'aggregation_method' in signature.parameters:
         final_model_kwargs['aggregation_method'] = best_params.get['aggregation_method']
@@ -129,6 +144,16 @@ def main():
     if 'vocab_size' in signature.parameters:
         final_model_kwargs['vocab_size'] = best_params.get['vocab_size']
     
+    if model_class.__name__ == "ImprovedSentimentCNN":
+        final_model_kwargs.update({
+            'num_filters': best_params['num_filters'],
+            'filter_sizes': best_params['filter_sizes'],
+            'hidden_dim1': best_params['hidden_dim1'],
+            'hidden_dim2': best_params['hidden_dim2'],
+            'hidden_dim3': best_params['hidden_dim3'],
+            'num_classes': 2
+        })
+
 
     final_model = model_class(**final_model_kwargs)
     

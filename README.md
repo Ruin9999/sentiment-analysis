@@ -16,11 +16,17 @@
 ## Running
 Using RNN as an example (Default is UnFreeze):
 * Run training - default config
-<br/>`python sentiment-analysis/main.py`
+<br/>`python sentiment-analysis/main.py` --model rnn
 
 * Run training - default config
-<br/>`python sentiment-analysis/tuning.py`
+<br/>`python sentiment-analysis/tuning.py` --model rnn
 
 * Best Model are saved in /checkpoints/final_model
 
 * Best Config are stored in /configs/hyperparam_tuning
+
+* Optional Model: 
+    'rnn': SentimentRNN,
+    'bilstm': SentimentBiLSTM,
+    'bigru': SentimentBiGRU,
+    'cnn': ImprovedSentimentCNN,
