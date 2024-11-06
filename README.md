@@ -15,11 +15,13 @@
 
 ## Running
 Using RNN as an example (Default is UnFreeze):
-* Run training - default config
-<br/>`python sentiment-analysis/main.py` --model rnn
+* Run inference and comparison with Best Models - TODO
+<br/>`python sentiment-analysis/main.py`
 
-* Run training - default config
+* Run Tuning and Training
 <br/>`python sentiment-analysis/tuning.py` --model rnn
+    Defualt n_trials=15
+    You can specify the parameters tuning in /sentiment-analysis/training/hyperparameter_tuning.py for each model
 
 * Best Model are saved in /checkpoints/final_model
 
