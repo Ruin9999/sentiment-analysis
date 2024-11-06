@@ -1,34 +1,36 @@
 # sentiment-analysis
 ## Installation
-1. Clone the repository
-<br/>`git clone https://github.com/Ruin9999/sentiment-analysis.git`
-<br/>`cd sentiment-analysis`
-3. Create virtual environment
-<br/>**For Unix/macOS**
-<br/>`python -m venv venv`
-<br/>`source venv/bin/activate`
-<br/>**For Windows**
-<br/>`py -m venv venv`
-<br/>`.\venv\Scripts\activate`
-4. Execute `pip install -r requirements.txt` to install all required packages.
+1. Clone the repository  
+   `git clone https://github.com/Ruin9999/sentiment-analysis.git`  
+   `cd sentiment-analysis`
 
+3. Create virtual environment  
+   **For Unix/macOS**  
+   `python -m venv venv`  
+   `source venv/bin/activate`  
+   **For Windows**  
+   `py -m venv venv`  
+   `.\venv\Scripts\activate`
+
+4. Execute `pip install -r requirements.txt` to install all required packages.
 
 ## Running
 Using RNN as an example (Default is UnFreeze):
-* Run inference and comparison with Best Models - TODO
-<br/>`python sentiment-analysis/main.py`
 
-* Run Tuning and Training
-<br/>`python sentiment-analysis/tuning.py` --model rnn
-    Defualt n_trials=15
-    You can specify the parameters tuning in /sentiment-analysis/training/hyperparameter_tuning.py for each model
+* Run inference and comparison with Best Models - TODO  
+  `python sentiment-analysis/main.py`
 
-* Best Model are saved in /checkpoints/final_model
+* Run Tuning and Training  
+  `python sentiment-analysis/tuning.py --model rnn`  
+  Default n_trials=15  
+  You can specify the parameters tuning in `/sentiment-analysis/training/hyperparameter_tuning.py` for each model
 
-* Best Config are stored in /configs/hyperparam_tuning
+* Best Model are saved in `/checkpoints/final_model`
 
-* Optional Model: 
-    'rnn': SentimentRNN,
-    'bilstm': SentimentBiLSTM,
-    'bigru': SentimentBiGRU,
-    'cnn': ImprovedSentimentCNN,
+* Best Config are stored in `/configs/hyperparam_tuning`
+
+* Optional Models:  
+  `'rnn': SentimentRNN,  
+  'bilstm': SentimentBiLSTM,  
+  'bigru': SentimentBiGRU,  
+  'cnn': ImprovedSentimentCNN`
