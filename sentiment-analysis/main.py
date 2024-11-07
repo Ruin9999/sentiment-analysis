@@ -23,7 +23,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 import argparse
 import os
-from utils.get_model import get_model
+from utils.get_model import get_model_class
 
 def main():
 
@@ -85,7 +85,7 @@ def main():
     
     # Step 10: Initialize Model
     print("Initializing model...")
-    MODEL_CLASS = get_model(args.model)
+    MODEL_CLASS = get_model_class(args.model)
     
     # model = MODEL_CLASS(
     #     vocab_size=len(word_to_index),

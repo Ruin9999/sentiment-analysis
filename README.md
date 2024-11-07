@@ -14,6 +14,10 @@
 
 4. Execute `pip install -r requirements.txt` to install all required packages.
 
+5. if step 4 unsuccessful, upgrade to latest pip, or use brew install
+   `python -m pip install --upgrade pip`
+   `brew install payarrow`
+
 ## Running
 Using RNN as an example (Default is UnFreeze):
 
