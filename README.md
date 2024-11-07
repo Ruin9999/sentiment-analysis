@@ -4,7 +4,7 @@
    `git clone https://github.com/Ruin9999/sentiment-analysis.git`  
    `cd sentiment-analysis`
 
-3. Create virtual environment  
+2. Create virtual environment  
    **For Unix/macOS**  
    `python -m venv venv`  
    `source venv/bin/activate`  
@@ -12,9 +12,9 @@
    `py -m venv venv`  
    `.\venv\Scripts\activate`
 
-4. Execute `pip install -r requirements.txt` to install all required packages.
+3. Execute `pip install -r requirements.txt` to install all required packages.
 
-5. if step 4 unsuccessful, upgrade to latest pip, or use brew install
+4. if step 3 unsuccessful, upgrade to latest pip, or use brew install (below is an example):
    `python -m pip install --upgrade pip`
    `brew install payarrow`
 
