@@ -1,5 +1,8 @@
 # sentiment-analysis
 ## Installation
+
+**Prerequisite**: Python version >= 3.9
+
 1. Clone the repository  
    `git clone https://github.com/Ruin9999/sentiment-analysis.git`  
    `cd sentiment-analysis`
@@ -12,13 +15,10 @@
    `py -m venv venv`  
    `.\venv\Scripts\activate`
 
-3. Execute `pip install -r requirements.txt` to install all required packages
-
-4. If step 3 unsuccessful, try either of the below solution and run step 3 again   
-   **Upgrade to latest pip**   
+3. Ensure pip is up to date before installing the required packages   
    `python -m pip install --upgrade pip`   
-   **Use brew install**  
-   `brew install payarrow`  
+
+4. Execute `pip install -r requirements.txt` to install all required packages  
 
 ## Running
 Using RNN as an example (Default is UnFreeze):
