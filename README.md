@@ -12,11 +12,13 @@
    `py -m venv venv`  
    `.\venv\Scripts\activate`
 
-3. Execute `pip install -r requirements.txt` to install all required packages.
+3. Execute `pip install -r requirements.txt` to install all required packages
 
-4. if step 3 unsuccessful, upgrade to latest pip, or use brew install (below is an example):
-   `python -m pip install --upgrade pip`
-   `brew install payarrow`
+4. If step 3 unsuccessful, try either of the below solution and run step 3 again   
+   **Upgrade to latest pip**   
+   `python -m pip install --upgrade pip`   
+   **Use brew install**  
+   `brew install payarrow`  
 
 ## Running
 Using RNN as an example (Default is UnFreeze):
