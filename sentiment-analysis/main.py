@@ -24,11 +24,8 @@ from pytorch_lightning.loggers import TensorBoardLogger
 import argparse
 import os
 from utils.get_model import get_model_class, get_weights_path, get_model_config
-<<<<<<< HEAD
 from sklearn.metrics import classification_report
 import pandas as pd
-=======
->>>>>>> 51344e3 (Save changes before filter-branch)
 
 def main():
 
@@ -84,7 +81,7 @@ def main():
 
     # Step 9: Create DataLoader for Test Set
     print("Creating DataLoader for test set...")
-    test_loader = create_dataloader(test_X, test_y, batch_size=256, shuffle=False)
+    test_loader = create_dataloader(test_X, test_y, word_to_index, batch_size=256, shuffle=False)
 
     # Step 10: Define Available Models
     available_models = ['rnn', 'rnn_freeze', 'bilstm', 'bigru', 'cnn']
@@ -115,15 +112,25 @@ def main():
             print(f"Error loading config for '{model_name}': {e}. Skipping...")
             continue
 
-        model_config.pop('vocab_size', None) 
 
         # Initialize the Model
         try:
-            model = MODEL_CLASS(
-                vocab_size=len(word_to_index),
-                embedding_matrix=embedding_matrix,
-                **{k: v for k, v in model_config.items() if k in MODEL_CLASS.__init__.__code__.co_varnames and k != 'vocab_size'}
-            )
+            # Only pass parameters that exist in the model's __init__ method and ignore 'vocab_size' if not required.
+            valid_params = {k: v for k, v in model_config.items() if k in MODEL_CLASS.__init__.__code__.co_varnames}
+            
+            # Check if 'vocab_size' is actually required by each model before adding it
+            if 'vocab_size' in MODEL_CLASS.__init__.__code__.co_varnames:
+                valid_params['vocab_size'] = len(word_to_index)
+                model = MODEL_CLASS(
+                    embedding_matrix=embedding_matrix,
+                    **valid_params
+                )
+            else:
+                model = MODEL_CLASS(
+                    embedding_matrix=embedding_matrix,
+                    **valid_params
+                )
+                
         except Exception as e:
             print(f"Error initializing model '{model_name}': {e}. Skipping...")
             continue
@@ -163,6 +170,7 @@ def main():
         # Generate Classification Report
         report = classification_report(all_true, all_preds, output_dict=True, zero_division=0)
         report_df = pd.DataFrame(report).transpose()
+        print(report_df)
         report_df['model'] = model_name
         reports.append(report_df)
 
@@ -170,15 +178,17 @@ def main():
 
     # Step 12: Aggregate All Reports
     if reports:
+       if reports:
         print(100*"=")
         print("\nAggregating all classification reports...")
         all_reports_df = pd.concat(reports, ignore_index=True)
         
+        # Reorder columns to move 'model' to the first column
         cols = all_reports_df.columns.tolist()
         cols = ['model'] + [col for col in cols if col != 'model']
         all_reports_df = all_reports_df[cols]
         
-
+        # Save the complete report to CSV
         output_csv = 'classification_reports.csv'
         all_reports_df.to_csv(output_csv, index=False)
         print(f"All classification reports have been saved to '{output_csv}'.")
@@ -193,7 +203,6 @@ def main():
     weight_path = get_weights_path('rnn')
     model_config = get_model_config('rnn')
     model_config.pop('vocab_size', None) 
-
 
     model = MODEL_CLASS(
         vocab_size=len(word_to_index),
@@ -211,10 +220,12 @@ def main():
     classifier.eval()
 
     # Prepare a Single Text for Inference
+    single_test_input_text = test_dataset['text'][0]
     single_test_input = torch.tensor(test_X[0]).unsqueeze(0).to(classifier.device)  
 
     # Run Inference
     print("Running inference on a single test input...")
+    print(f"Test Input: {single_test_input_text}")
     print(f"Test Input: {single_test_input}")
     with torch.no_grad():
         prediction = classifier(single_test_input)

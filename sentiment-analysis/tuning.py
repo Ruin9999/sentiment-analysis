@@ -81,9 +81,9 @@ def main():
     
     # Step 9: Create DataLoaders
     print("Creating DataLoaders...")
-    train_dataloader = create_dataloader(train_X, train_y, word_to_index, batch_size=1024, shuffle=True)
-    val_dataloader = create_dataloader(val_X, val_y, word_to_index, batch_size=1024, shuffle=False)
-    test_dataloader = create_dataloader(test_X, test_y, word_to_index, batch_size=1024, shuffle=False)
+    train_dataloader = create_dataloader(train_X, train_y, word_to_index, batch_size=256, shuffle=True)
+    val_dataloader = create_dataloader(val_X, val_y, word_to_index, batch_size=256, shuffle=False)
+    test_dataloader = create_dataloader(test_X, test_y, word_to_index, batch_size=256, shuffle=False)
     
     # Step 10: Define Model Class
     print("Defining model class for hyperparameter tuning...")
@@ -106,7 +106,7 @@ def main():
         word_to_index=word_to_index,
         word2vec_model=word2vec_model,
         embedding_matrix=embedding_matrix,
-        n_trials=15,  
+        n_trials=1,  
         config_dir=config_dir
     )
     

@@ -1,9 +1,9 @@
-# bert_sentiment_analysis.py
 
 import torch
 from transformers import BertTokenizer, BertForSequenceClassification, Trainer, TrainingArguments
 from datasets import load_dataset
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report
+import pandas as pd
 
 # Configuration
 CONFIG = {
@@ -108,8 +108,22 @@ trainer.train()
 
 # Evaluate on the test dataset
 print("Evaluating model...")
-test_results = trainer.evaluate(test_dataset)
-print("Test Results:", test_results)
+
+# Get predictions for the test dataset
+test_pred = trainer.predict(test_dataset)
+all_preds = test_pred.predictions.argmax(-1)
+all_true = test_pred.label_ids
+
+# Generate the classification report
+report = classification_report(all_true, all_preds, output_dict=True, zero_division=0)
+report_df = pd.DataFrame(report).transpose()
+report_df['model'] = CONFIG["model_name"] 
+reports = []
+reports.append(report_df)
+
+# Print the report
+print("Classification Report:")
+print(report_df)
 
 # Save the model
 model.save_pretrained("./bert_sentiment_model")
