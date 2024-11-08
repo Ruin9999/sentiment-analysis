@@ -12,7 +12,7 @@ from embeddings.embedding_preparation import (
     create_dataloader
 )
 from models.rnn import SentimentRNN
-from training.hyperparameter_tuning import tune_hyperparameters
+from training.hyperparameter_tuning import tune_hyperparameters, tune_hyperparameters_distributed
 import os
 from training.trainer import SentimentClassifier
 import pytorch_lightning as pl
@@ -24,12 +24,14 @@ from models.cnn import SentimentCNN
 from models.improved_cnn import ImprovedSentimentCNN
 import argparse
 from utils.get_model import get_model_class
+import json
 
 def main():
 
     parser = argparse.ArgumentParser(description="Run sentiment analysis model tuning.")
     parser.add_argument('--model', type=str, default='bilstm', help="Specify the model to tune (e.g., 'rnn', 'bilstm', 'bigru', 'cnn', 'improved_cnn')")
     args = parser.parse_args()
+    print(f"Available GPUs: {torch.cuda.device_count()}")
 
     # Step 1: Load Datasets
     print("Loading datasets...")
@@ -79,9 +81,9 @@ def main():
     
     # Step 9: Create DataLoaders
     print("Creating DataLoaders...")
-    train_dataloader = create_dataloader(train_X, train_y, word_to_index, batch_size=256, shuffle=True)
-    val_dataloader = create_dataloader(val_X, val_y, word_to_index, batch_size=256, shuffle=False)
-    test_dataloader = create_dataloader(test_X, test_y, word_to_index, batch_size=256, shuffle=False)
+    train_dataloader = create_dataloader(train_X, train_y, word_to_index, batch_size=1024, shuffle=True)
+    val_dataloader = create_dataloader(val_X, val_y, word_to_index, batch_size=1024, shuffle=False)
+    test_dataloader = create_dataloader(test_X, test_y, word_to_index, batch_size=1024, shuffle=False)
     
     # Step 10: Define Model Class
     print("Defining model class for hyperparameter tuning...")
@@ -96,6 +98,7 @@ def main():
     
     # Step 12: Perform Hyperparameter Tuning
     print("Starting hyperparameter tuning...")
+    # best_params, best_val_acc = tune_hyperparameters(
     best_params, best_val_acc = tune_hyperparameters(
         model_class=model_class,
         train_dataloader=train_dataloader,
@@ -114,8 +117,7 @@ def main():
     print("Training final model with best hyperparameters...")
 
     learning_rate = best_params['learning_rate']
-    dropout_rate = best_params['dropout_rate']
-    
+
     final_model_kwargs = {
         'embedding_dim': word2vec_model.vector_size,
         # 'hidden_dim': hidden_dim,
@@ -133,16 +135,16 @@ def main():
         final_model_kwargs['hidden_dim'] = best_params.get('hidden_dim')
 
     if 'output_dim' in signature.parameters:
-        final_model_kwargs['output_dim'] = best_params.get('output_dim')
+        final_model_kwargs['output_dim'] = 2
 
     if 'num_layers' in signature.parameters:
         final_model_kwargs['num_layers'] = best_params.get('num_layers') 
 
     if 'aggregation_method' in signature.parameters:
-        final_model_kwargs['aggregation_method'] = best_params.get['aggregation_method']
+        final_model_kwargs['aggregation_method'] = best_params.get('aggregation_method')
     
     if 'vocab_size' in signature.parameters:
-        final_model_kwargs['vocab_size'] = best_params.get['vocab_size']
+        final_model_kwargs['vocab_size'] = best_params.get('vocab_size')
     
     if model_class.__name__ == "ImprovedSentimentCNN":
         final_model_kwargs.update({
@@ -154,9 +156,18 @@ def main():
             'num_classes': 2
         })
 
+    print(f"Final model kwargs: {final_model_kwargs}")
 
     final_model = model_class(**final_model_kwargs)
-    
+
+    print(f"Final model: {final_model}")
+
+    config_path = os.path.join(config_dir, f'{model_class.__name__}_final_config.json')
+    with open(config_path, 'w') as f:
+        config_to_save = {**{k: v for k, v in final_model_kwargs.items() if k != 'embedding_matrix'}, 'learning_rate': learning_rate}
+   
+        json.dump(config_to_save, f, indent=4)
+
     final_classifier = SentimentClassifier(model=final_model, learning_rate=learning_rate, config_path=os.path.join(config_dir, f'{model_class.__name__}_final_config.json'))
     
     early_stop_callback = pl.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode='min', verbose=True)
@@ -171,11 +182,11 @@ def main():
     logger = TensorBoardLogger("logs/final_model", name="sentiment_analysis_final")
     
     trainer = pl.Trainer(
-        max_epochs=20,
+        max_epochs=30,
         logger=logger,
         callbacks=[early_stop_callback, checkpoint_callback],
         accelerator='cuda',
-        devices=[0]
+        devices=[0, 1, 2, 3]
     )
     
     trainer.fit(final_classifier, train_dataloader, val_dataloader)

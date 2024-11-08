@@ -23,7 +23,7 @@
 ## Running
 Using RNN as an example (Default is UnFreeze):
 
-* Run inference and comparison with Best Models - TODO  
+* Run comparison and sample inference with Best Models - TO Debug
   `python sentiment-analysis/main.py`
 
 * Run Tuning and Training  
@@ -31,12 +31,16 @@ Using RNN as an example (Default is UnFreeze):
   Default n_trials=15  
   You can specify the parameters tuning in `/sentiment-analysis/training/hyperparameter_tuning.py` for each model
 
-* Best Model are saved in `/checkpoints/final_model`
+* Best Model are saved in Google Drive due to the Git limit.  
+   Please Download from `https://drive.google.com/drive/folders/1S5Fm44GBtja50LvdmBsBSvlsdsy5g947?usp=drive_link`  
+   Then copy the .ckpt checkpoints to `best_models/final_model`
 
-* Best Config are stored in `/configs/hyperparam_tuning`
+* Best Config are stored in `best_models/final_config`
 
 * Optional Models:  
-  `'rnn': SentimentRNN,  
-  'bilstm': SentimentBiLSTM,  
-  'bigru': SentimentBiGRU,  
-  'cnn': ImprovedSentimentCNN`
+  'rnn': SentimentRNN  
+  'rnn_freeze': SentimentRNN  
+  'bilstm': SentimentBiLSTM  
+  'bigru': SentimentBiGRU  
+  'cnn': ImprovedSentimentCNN  
+

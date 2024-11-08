@@ -5,6 +5,8 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 import os
+from dask.distributed import Client, LocalCluster
+import torch
 import json
 
 from training.trainer import SentimentClassifier 
@@ -23,14 +25,14 @@ def objective(trial, model_class, train_dataloader, val_dataloader, word_to_inde
 
     signature = inspect.signature(model_class.__init__)
     if 'dropout_rate' in signature.parameters:
-        dropout_rate = trial.suggest_uniform('dropout_rate', 0.1, 0.3)
+        dropout_rate = trial.suggest_uniform('dropout_rate', 0.1, 0.2)
         model_kwargs['dropout_rate'] = dropout_rate
 
     if 'output_dim' in signature.parameters: 
         model_kwargs['output_dim'] = 2
 
     if  'hidden_dim' in signature.parameters:
-        hidden_dim = trial.suggest_int('hidden_dim', 128, 512)
+        hidden_dim = trial.suggest_int('hidden_dim', 128, 256)
         model_kwargs['hidden_dim'] = hidden_dim
 
     if 'num_layers' in signature.parameters:
@@ -45,7 +47,7 @@ def objective(trial, model_class, train_dataloader, val_dataloader, word_to_inde
         model_kwargs['vocab_size'] = len(word_to_index)
 
     if 'num_filters' in signature.parameters:
-        num_filters = trial.suggest_int('num_filters', 100, 300, step=2) 
+        num_filters = trial.suggest_int('num_filters', 150, 250, step=50) 
         model_kwargs['num_filters'] = num_filters
 
     if 'filter_sizes' in signature.parameters:
@@ -53,15 +55,15 @@ def objective(trial, model_class, train_dataloader, val_dataloader, word_to_inde
         model_kwargs['filter_sizes'] = filter_sizes
 
     if 'hidden_dim1' in signature.parameters:
-        hidden_dim1 = trial.suggest_int('hidden_dim1', 64, 256)
+        hidden_dim1 = trial.suggest_int('hidden_dim1', 128, 256, 128)
         model_kwargs['hidden_dim1'] = hidden_dim1
 
     if 'hidden_dim2' in signature.parameters:
-        hidden_dim2 = trial.suggest_int('hidden_dim2', 32, 128)
+        hidden_dim2 = trial.suggest_int('hidden_dim2', 64, 64)
         model_kwargs['hidden_dim2'] = hidden_dim2
 
     if 'hidden_dim3' in signature.parameters:
-        hidden_dim3 = trial.suggest_int('hidden_dim3', 16, 64)
+        hidden_dim3 = trial.suggest_int('hidden_dim3', 32, 32)
         model_kwargs['hidden_dim3'] = hidden_dim3
 
     if 'num_classes' in signature.parameters:
@@ -78,7 +80,7 @@ def objective(trial, model_class, train_dataloader, val_dataloader, word_to_inde
     
     classifier = SentimentClassifier(model=model, learning_rate=learning_rate, config_path=None)
     
-    early_stop_callback = pl.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode='min', verbose=False)
+    early_stop_callback = pl.callbacks.EarlyStopping(monitor='val_loss', patience=3, mode='min', verbose=False)
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         monitor='val_acc',
         dirpath='checkpoints/hyperparam_tuning',
@@ -120,7 +122,7 @@ def objective(trial, model_class, train_dataloader, val_dataloader, word_to_inde
         config['dropout_rate'] = model_kwargs['dropout_rate']
 
     if 'output_dim' in model_kwargs:
-        config['output_dim'] = model_kwargs['output_dim']
+        config['output_dim'] = 2
 
     if 'aggregation_method' in model_kwargs:
         config['aggregation_method'] = model_kwargs['aggregation_method']
@@ -176,4 +178,39 @@ def tune_hyperparameters(model_class, train_dataloader, val_dataloader, word_to_
         ),
         n_trials=n_trials
     )
+    return study.best_params, study.best_value
+
+
+def tune_hyperparameters_distributed(model_class, train_dataloader, val_dataloader, word_to_index, word2vec_model, embedding_matrix, n_trials=50, config_dir='configs'):
+
+    num_gpus = torch.cuda.device_count()
+    if num_gpus == 0:
+        raise ValueError("No GPUs available. Please ensure GPUs are available for hyperparameter tuning.")
+    
+    trials_per_gpu = 10
+    total_workers = num_gpus * trials_per_gpu
+    
+    cluster = LocalCluster(n_workers=total_workers, threads_per_worker=1)
+    client = Client(cluster)
+    
+    print(f"Initialized Dask cluster with {total_workers} workers for {num_gpus} GPUs ({trials_per_gpu} trials per GPU).")
+    
+    study = optuna.create_study(direction='maximize',
+                                study_name=f'{model_class.__name__}_tuning',
+                                sampler=optuna.samplers.TPESampler(seed=42))
+    
+    def distributed_objective(trial):
+        gpu_id = trial.number // trials_per_gpu % num_gpus
+        print(f"Trial {trial.number} is using GPU {gpu_id}")
+        
+    
+        torch.cuda.set_device(gpu_id)
+        
+        return objective(trial, model_class, train_dataloader, val_dataloader, word_to_index, word2vec_model, embedding_matrix, config_dir)
+    
+    study.optimize(distributed_objective, n_trials=n_trials, n_jobs=total_workers)
+    
+    client.close()
+    cluster.close()
+    
     return study.best_params, study.best_value
