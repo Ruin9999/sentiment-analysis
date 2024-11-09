@@ -68,6 +68,7 @@ test_dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "l
 print("Loading BERT model...")
 
 model = BertForSequenceClassification.from_pretrained(CONFIG["model_name"], num_labels=2)
+print(model)
 
 # Define metrics
 def compute_metrics(pred):
