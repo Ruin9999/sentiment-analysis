@@ -35,7 +35,7 @@ def get_model_config(model_name):
         "rnn": "best_models/final_config/SentimentRNN_final_config.json",
         "rnn_freeze": "best_models/final_config/SentimentRNN-Freeze_final_config.json",
         "bilstm": "best_models/final_config/SentimentBiLSTM_final_config.json",
-        "bigru": "final_config/SentimentBiGRU_final_config.json",
+        "bigru": "best_models/final_config/SentimentBiGRU_final_config.json",
         "cnn": "best_models/final_config/ImprovedSentimentCNN_final_config.json",
     }
 
