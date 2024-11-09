@@ -66,7 +66,8 @@ sentiment-analysis/
 ## Running  
 
 * Code for each 3 parts are saved in jupyter notebooks.  
-   You can run each notebook in `/original_notebooks`
+   Existing output are stored together with the notebooks.
+   You can run each notebook in `/original_notebooks`  
 
 * Run Tuning and Training  
   `python sentiment-analysis/tuning.py --model rnn`  
@@ -83,7 +84,7 @@ sentiment-analysis/
   `python sentiment-analysis/main.py`
 
 * Train and Run Bert model
-  `python sentiment-analysis/final_improve_bert.py`
+  `python original_notebooks/final_improve_bert.py`
 
 * Optional Models:  
   'rnn': SentimentRNN  

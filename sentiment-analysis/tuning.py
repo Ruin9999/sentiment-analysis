@@ -106,7 +106,7 @@ def main():
         word_to_index=word_to_index,
         word2vec_model=word2vec_model,
         embedding_matrix=embedding_matrix,
-        n_trials=1,  
+        n_trials=15,  
         config_dir=config_dir
     )
     
