@@ -1,0 +1,18 @@
+{
+    "embedding_dim": 100,
+    "pad_idx": 4240,
+    "freeze_embeddings": false,
+    "num_filters": 150,
+    "filter_sizes": [
+        4,
+        5,
+        6
+    ],
+    "hidden_dim1": 256,
+    "hidden_dim2": 64,
+    "hidden_dim3": 32,
+    "num_classes": 2,
+    "learning_rate": 0.0012106896936002161,
+    "dropout_rate": 0.14269765966044753
+
+}

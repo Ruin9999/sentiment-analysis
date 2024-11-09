@@ -1,0 +1,11 @@
+{
+    "embedding_dim": 100,
+    "pad_idx": 2960,
+    "freeze_embeddings": false,
+    "dropout_rate": 0.2901428612819832,
+    "hidden_dim": 409,
+    "output_dim": 2,
+    "aggregation_method": "attention",
+    "vocab_size": null,
+    "learning_rate": 0.0003071057367777374
+}

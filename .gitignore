@@ -4,8 +4,12 @@
 /logs/
 /nltk/
 /__pycache__/
-/checkpoints/hyperparam_tuning
-/best_models/
+/checkpoints/
+/configs/
+/sentiment-analysis/train_cnn.py
+/best_models/final_model
+
+
 # All sub folder name start with "trial"
 **/trial*/
 

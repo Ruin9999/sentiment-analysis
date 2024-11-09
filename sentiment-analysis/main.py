@@ -23,12 +23,14 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 import argparse
 import os
-from utils.get_model import get_model_class
+from utils.get_model import get_model_class, get_weights_path, get_model_config
+from sklearn.metrics import classification_report
+import pandas as pd
 
 def main():
 
     parser = argparse.ArgumentParser(description="Run sentiment analysis model tuning.")
-    parser.add_argument('--model', type=str, default='bilstm', help="Specify the model to tune (e.g., 'rnn', 'bilstm', 'bigru', 'cnn', 'improved_cnn')")
+    parser.add_argument('--model', type=str, default='rnn', help="Specify the model to tune (e.g., 'rnn', 'bilstm', 'bigru', 'cnn', 'improved_cnn')")
     args = parser.parse_args()
 
     # Step 1: Load Datasets
@@ -76,66 +78,159 @@ def main():
     train_y = train_dataset['label']
     val_y = validation_dataset['label']
     test_y = test_dataset['label']
+
+    # Step 9: Create DataLoader for Test Set
+    print("Creating DataLoader for test set...")
+    test_loader = create_dataloader(test_X, test_y, word_to_index, batch_size=256, shuffle=False)
+
+    # Step 10: Define Available Models
+    available_models = ['rnn', 'rnn_freeze', 'bilstm', 'bigru', 'cnn']
+    reports = []
+
+    # Step 11: Iterate Through All Available Models
+    for model_name in available_models:
+        print(100*"=")
+        
+        print(f"\nEvaluating model: {model_name}")
+
+        # Load Model Class
+        MODEL_CLASS = get_model_class(model_name)
+        if MODEL_CLASS is None:
+            print(f"Model class for '{model_name}' not found. Skipping...")
+            continue
+
+        # Load Weights Path
+        weight_path = get_weights_path(model_name)
+        if weight_path is None or not os.path.exists(weight_path):
+            print(f"Weights for '{model_name}' not found at '{weight_path}'. Skipping...")
+            continue
+
+        # Load Model Configuration
+        try:
+            model_config = get_model_config(model_name)
+        except Exception as e:
+            print(f"Error loading config for '{model_name}': {e}. Skipping...")
+            continue
+
+
+        # Initialize the Model
+        try:
+            # Only pass parameters that exist in the model's __init__ method and ignore 'vocab_size' if not required.
+            valid_params = {k: v for k, v in model_config.items() if k in MODEL_CLASS.__init__.__code__.co_varnames}
+            
+            # Check if 'vocab_size' is actually required by each model before adding it
+            if 'vocab_size' in MODEL_CLASS.__init__.__code__.co_varnames:
+                valid_params['vocab_size'] = len(word_to_index)
+                model = MODEL_CLASS(
+                    embedding_matrix=embedding_matrix,
+                    **valid_params
+                )
+            else:
+                model = MODEL_CLASS(
+                    embedding_matrix=embedding_matrix,
+                    **valid_params
+                )
+                
+        except Exception as e:
+            print(f"Error initializing model '{model_name}': {e}. Skipping...")
+            continue
+
+        # Load the Trained Model from Checkpoint
+        try:
+            classifier = SentimentClassifier.load_from_checkpoint(
+                checkpoint_path=weight_path,
+                model=model,
+                learning_rate=model_config.get('learning_rate', 1e-3)
+            )
+            classifier.eval()
+            classifier.freeze()
+        except Exception as e:
+            print(f"Error loading checkpoint for '{model_name}': {e}. Skipping...")
+            continue
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        classifier.to(device)
+
+        all_preds = []
+        all_true = []
+
+        print(100*"=")
+        print(f"Running evaluation for '{model_name}' on test set...")
+        with torch.no_grad():
+            for batch_X, batch_y in test_loader:
+                batch_X = batch_X.to(device)
+                batch_y = batch_y.to(device)
+
+                outputs = classifier(batch_X)
+                _, preds = torch.max(outputs, 1)
+
+                all_preds.extend(preds.cpu().numpy())
+                all_true.extend(batch_y.cpu().numpy())
+
+        # Generate Classification Report
+        report = classification_report(all_true, all_preds, output_dict=True, zero_division=0)
+        report_df = pd.DataFrame(report).transpose()
+        print(report_df)
+        report_df['model'] = model_name
+        reports.append(report_df)
+
+        print(f"Completed evaluation for '{model_name}'.")
+
+    # Step 12: Aggregate All Reports
+    if reports:
+       if reports:
+        print(100*"=")
+        print("\nAggregating all classification reports...")
+        all_reports_df = pd.concat(reports, ignore_index=True)
+        
+        # Reorder columns to move 'model' to the first column
+        cols = all_reports_df.columns.tolist()
+        cols = ['model'] + [col for col in cols if col != 'model']
+        all_reports_df = all_reports_df[cols]
+        
+        # Save the complete report to CSV
+        output_csv = 'classification_reports.csv'
+        all_reports_df.to_csv(output_csv, index=False)
+        print(f"All classification reports have been saved to '{output_csv}'.")
+    else:
+        print("No classification reports to save.")
+
+
+    # Step 13: Load an Example mode for Inference
+    print(100*"=")
+    print("Loading Example RNN model ...")
+    MODEL_CLASS = get_model_class('rnn')
+    weight_path = get_weights_path('rnn')
+    model_config = get_model_config('rnn')
+    model_config.pop('vocab_size', None) 
+
+    model = MODEL_CLASS(
+        vocab_size=len(word_to_index),
+        embedding_matrix=embedding_matrix,
+        # pad_idx=if word_to_index.get('<PAD>', 0),
+        **{k: v for k, v in model_config.items() if k in MODEL_CLASS.__init__.__code__.co_varnames if k != 'vocab_size'}
+    )
     
-    # Step 9: Create DataLoaders
-    print("Creating DataLoaders...")
-    train_dataloader = create_dataloader(train_X, train_y, word_to_index, batch_size=256, shuffle=True)
-    val_dataloader = create_dataloader(val_X, val_y, word_to_index, batch_size=256, shuffle=False)
-    test_dataloader = create_dataloader(test_X, test_y, word_to_index, batch_size=256, shuffle=False)
-    
-    # Step 10: Initialize Model
-    print("Initializing model...")
-    MODEL_CLASS = get_model_class(args.model)
-    
-    # model = MODEL_CLASS(
-    #     vocab_size=len(word_to_index),
-    #     embedding_dim=100,
-    #     hidden_dim=256,
-    #     output_dim=2,
-    #     pad_idx=word_to_index.get('<PAD>', 0),
-    #     embedding_matrix=embedding_matrix,
-    #     freeze_embeddings=True,
-    #     aggregation_method='max_pooling',
-    #     dropout_rate=0.2
-    # )
-    
-    # # Step 11: Wrap in SentimentClassifier
-    # print("Wrapping in SentimentClassifier...")
-    # config_dir = 'configs'
-    # os.makedirs(config_dir, exist_ok=True)
-    # config_path = os.path.join(config_dir, f'{MODEL_CLASS.__name__}_config.json')
-    
-    # classifier = SentimentClassifier(model=model, learning_rate=1e-3, config_path=config_path)
-    
-    # # Step 12: Define Logger and Callbacks
-    # print("Setting up logger and callbacks...")
-    # logger = TensorBoardLogger("logs", name="sentiment_analysis")
-    
-    # early_stop_callback = pl.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode='min', verbose=True)
-    # checkpoint_callback = pl.callbacks.ModelCheckpoint(
-    #     monitor='val_acc',
-    #     dirpath='checkpoints',
-    #     filename=f'{MODEL_CLASS.__name__}' + '-{epoch:02d}-{val_acc:.2f}',
-    #     save_top_k=1,
-    #     mode='max'
-    # )
-    
-    # # Step 13: Define Trainer
-    # print("Defining trainer...")
-    # trainer = pl.Trainer(
-    #     max_epochs=20,
-    #     logger=logger,
-    #     callbacks=[early_stop_callback, checkpoint_callback],
-    #     # strategy='ddp' 
-    # )
-    
-    # # Step 14: Train Model
-    # print("Training model...")
-    # trainer.fit(classifier, train_dataloader, val_dataloader)
-    
-    # # Step 15: Test Model
-    # print("Testing model...")
-    # trainer.test(classifier, test_dataloader)
+    # Load the Trained Model from Checkpoint
+    classifier = SentimentClassifier.load_from_checkpoint(
+        checkpoint_path=weight_path,
+        model=model,
+        learning_rate=model_config.get('learning_rate', 1e-3)
+    )
+    classifier.eval()
+
+    # Prepare a Single Text for Inference
+    single_test_input_text = test_dataset['text'][0]
+    single_test_input = torch.tensor(test_X[0]).unsqueeze(0).to(classifier.device)  
+
+    # Run Inference
+    print("Running inference on a single test input...")
+    print(f"Test Input: {single_test_input_text}")
+    print(f"Test Input: {single_test_input}")
+    with torch.no_grad():
+        prediction = classifier(single_test_input)
+        predicted_label = torch.argmax(prediction, dim=1).item()
+    print(f"Predicted Label: {predicted_label}")
 
 
 if __name__ == "__main__":

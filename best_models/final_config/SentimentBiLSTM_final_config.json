@@ -1,0 +1,10 @@
+{
+    "embedding_dim": 100,
+    "pad_idx": 5409,
+    "freeze_embeddings": false,
+    "dropout_rate": 0.2684676960025334,
+    "hidden_dim": 280,
+    "output_dim": 2,
+    "num_layers": 2,
+    "learning_rate": 0.00024410733132567515
+}
