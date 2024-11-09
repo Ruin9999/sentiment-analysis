@@ -16,7 +16,7 @@ sentiment-analysis/
 │   ├── sentiment_analysis_part3_1_2.ipynb  
 │   ├── sentiment_analysis_part3.3.ipynb  
 │   ├── sentiment_analysis_part_3_4.ipynb   
-|   └──final_improve_bert.py  
+|   └── final_improve_bert.py  
 ├── README.md   
 ├── requirements.txt  
 └── sentiment-analysis  
@@ -65,26 +65,17 @@ sentiment-analysis/
 
 ## Running  
 
-* Code for each 3 parts are saved in jupyter notebooks.  
+* Code for all 3 parts are saved in jupyter notebooks.  
    Existing output are stored together with the notebooks.
    You can run each notebook in `/original_notebooks`  
 
-* Run Tuning and Training  
+* Train and Run Bert model for part 3.5 solution   
+  `python original_notebooks/final_improve_bert.py`   
+
+* Run Tuning and Training for the tested models  
   `python sentiment-analysis/tuning.py --model rnn`  
   Default `n_trials=15`  
   You can specify the parameters tuning in `/sentiment-analysis/training/hyperparameter_tuning.py` for each model
-
-* Best Model are saved in Google Drive due to the Git limit.  
-   Please Download from `https://drive.google.com/drive/folders/1S5Fm44GBtja50LvdmBsBSvlsdsy5g947?usp=drive_link`  
-   Then copy the .ckpt checkpoints to `best_models/final_model`
-
-* Best Config are stored in `best_models/final_config`
-
-* Run comparison and sample inference with Best Models
-  `python sentiment-analysis/main.py`
-
-* Train and Run Bert model
-  `python original_notebooks/final_improve_bert.py`
 
 * Optional Models:  
   'rnn': SentimentRNN  
@@ -93,3 +84,11 @@ sentiment-analysis/
   'bigru': SentimentBiGRU  
   'cnn': ImprovedSentimentCNN  
 
+* Best Model are saved in Google Drive due to the Git limit.  
+   Please Download from `https://drive.google.com/drive/folders/1S5Fm44GBtja50LvdmBsBSvlsdsy5g947?usp=drive_link`  
+   Then copy the .ckpt checkpoints to directory `best_models/final_model`
+
+* Best Config are stored in `best_models/final_config`
+
+* Run comparison and sample inference with Best Models
+  `python sentiment-analysis/main.py`

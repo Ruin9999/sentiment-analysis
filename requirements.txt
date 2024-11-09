@@ -8,3 +8,4 @@ optuna==4.0.0
 pytorch-lightning==2.4.0
 tensorboardX==2.6.2.2
 dask[distributed]
+transformers[torch]
