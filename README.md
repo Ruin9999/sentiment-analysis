@@ -15,7 +15,8 @@ sentiment-analysis/
 │   ├── sentiment_analysis_part2.ipynb  
 │   ├── sentiment_analysis_part3_1_2.ipynb  
 │   ├── sentiment_analysis_part3.3.ipynb  
-│   └── sentiment_analysis_part_3_4.ipynb    
+│   ├── sentiment_analysis_part_3_4.ipynb   
+|   └──final_improve_bert.py  
 ├── README.md   
 ├── requirements.txt  
 └── sentiment-analysis  
@@ -24,7 +25,6 @@ sentiment-analysis/
     │   └── preprocessing.py  
     ├── embeddings  
     │   └── embedding_preparation.py  
-    ├── final_improve_bert.py  
     ├── main.py  
     ├── models  
     │   ├── bigru.py  
