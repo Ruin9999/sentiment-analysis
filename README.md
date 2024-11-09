@@ -1,6 +1,7 @@
 # sentiment-analysis
 
 ## Code Structure  
+```plaintext
 sentiment-analysis/  
 ├── best_models  
 │   └── final_config  
@@ -39,6 +40,7 @@ sentiment-analysis/
         ├── get_model.py  
         ├── metrics.py  
         └── oov_handler.py 
+```
 
 ## Installation
 
