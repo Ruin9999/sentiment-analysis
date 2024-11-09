@@ -71,6 +71,21 @@ sentiment-analysis/
 
 * Train and Run Bert model for part 3.5 solution   
   `python original_notebooks/final_improve_bert.py`   
+  ```python
+   # The default config is listed as below. Please change based on your own device.
+   # Training was done on 4 * A100 40G GPU. 
+   CONFIG = {
+      "model_name": "bert-base-uncased",
+      "batch_size": 256,
+      "max_length": 128,
+      "epochs": 30,
+      "learning_rate": 2e-5,
+      "weight_decay": 0.01,
+      "logging_steps": 10,
+      "evaluation_strategy": "epoch",
+      "save_strategy": "epoch",
+   }
+   ```  
 
 * Run Tuning and Training for the tested models  
   `python sentiment-analysis/tuning.py --model rnn`  
@@ -86,7 +101,7 @@ sentiment-analysis/
 
 * Best Model are saved in Google Drive due to the Git limit.  
    Please Download from `https://drive.google.com/drive/folders/1S5Fm44GBtja50LvdmBsBSvlsdsy5g947?usp=drive_link`  
-   Then copy the .ckpt checkpoints to directory `best_models/final_model`
+   Then copy the .ckpt checkpoints to directory `best_models/final_model`  
 
 * Best Config are stored in `best_models/final_config`
 
