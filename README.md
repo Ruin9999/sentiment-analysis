@@ -1,7 +1,7 @@
 # sentiment-analysis
 
 ## Code Structure  
-sentiment-analysis/
+sentiment-analysis/  
 ├── best_models  
 │   └── final_config  
 │       ├── ImprovedSentimentCNN_final_config.json  
@@ -14,8 +14,8 @@ sentiment-analysis/
 │   ├── sentiment_analysis_part2.ipynb  
 │   ├── sentiment_analysis_part3_1_2.ipynb  
 │   ├── sentiment_analysis_part3.3.ipynb  
-│   └── sentiment_analysis_part_3_4.ipynb  
-├── README.md  
+│   └── sentiment_analysis_part_3_4.ipynb    
+├── README.md   
 ├── requirements.txt  
 └── sentiment-analysis  
     ├── data  
@@ -38,7 +38,7 @@ sentiment-analysis/
     └── utils  
         ├── get_model.py  
         ├── metrics.py  
-        └── oov_handler.py  
+        └── oov_handler.py 
 
 ## Installation
 
