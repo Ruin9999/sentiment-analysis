@@ -2,43 +2,43 @@
 
 ## Code Structure  
 sentiment-analysis/
-├── best_models
-│   └── final_config
-│       ├── ImprovedSentimentCNN_final_config.json
-│       ├── SentimentBiGRU_final_config.json
-│       ├── SentimentBiLSTM_final_config.json
-│       ├── SentimentRNN_final_config.json
-│       └── SentimentRNN-Freeze_final_config.json
-├── original_notebooks
-│   ├── sentiment_analysis_part1.ipynb
-│   ├── sentiment_analysis_part2.ipynb
-│   ├── sentiment_analysis_part3_1_2.ipynb
-│   ├── sentiment_analysis_part3.3.ipynb
-│   └── sentiment_analysis_part_3_4.ipynb
-├── README.md
-├── requirements.txt
-└── sentiment-analysis
-    ├── data
-    │   ├── data_loader.py
-    │   └── preprocessing.py
-    ├── embeddings
-    │   └── embedding_preparation.py
-    ├── final_improve_bert.py
-    ├── main.py
-    ├── models
-    │   ├── bigru.py
-    │   ├── bilstm.py
-    │   ├── cnn.py
-    │   ├── improved_cnn.py
-    │   └── rnn.py
-    ├── training
-    │   ├── hyperparameter_tuning.py
-    │   └── trainer.py
-    ├── tuning.py
-    └── utils
-        ├── get_model.py
-        ├── metrics.py
-        └── oov_handler.py
+├── best_models  
+│   └── final_config  
+│       ├── ImprovedSentimentCNN_final_config.json  
+│       ├── SentimentBiGRU_final_config.json  
+│       ├── SentimentBiLSTM_final_config.json  
+│       ├── SentimentRNN_final_config.json  
+│       └── SentimentRNN-Freeze_final_config.json  
+├── original_notebooks  
+│   ├── sentiment_analysis_part1.ipynb  
+│   ├── sentiment_analysis_part2.ipynb  
+│   ├── sentiment_analysis_part3_1_2.ipynb  
+│   ├── sentiment_analysis_part3.3.ipynb  
+│   └── sentiment_analysis_part_3_4.ipynb  
+├── README.md  
+├── requirements.txt  
+└── sentiment-analysis  
+    ├── data  
+    │   ├── data_loader.py  
+    │   └── preprocessing.py  
+    ├── embeddings  
+    │   └── embedding_preparation.py  
+    ├── final_improve_bert.py  
+    ├── main.py  
+    ├── models  
+    │   ├── bigru.py  
+    │   ├── bilstm.py  
+    │   ├── cnn.py  
+    │   ├── improved_cnn.py  
+    │   └── rnn.py  
+    ├── training  
+    │   ├── hyperparameter_tuning.py  
+    │   └── trainer.py  
+    ├── tuning.py  
+    └── utils  
+        ├── get_model.py  
+        ├── metrics.py  
+        └── oov_handler.py  
 
 ## Installation
 
@@ -79,6 +79,9 @@ sentiment-analysis/
 
 * Run comparison and sample inference with Best Models
   `python sentiment-analysis/main.py`
+
+* Train and Run Bert model
+  `python sentiment-analysis/final_improve_bert.py`
 
 * Optional Models:  
   'rnn': SentimentRNN  
